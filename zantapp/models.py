@@ -65,7 +65,7 @@ class User(AbstractUser, BaseModel):
     is_photographer = models.BooleanField(_('photographer'), default=False)
     is_client = models.BooleanField(_('client'), default=False)
 
-    # objects = UserManager()
+    objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
