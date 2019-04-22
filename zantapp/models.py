@@ -105,18 +105,34 @@ class SkillsField(ArrayField):
 
 
 class Client(Profile):
-    guests = SkillsField()
+    # guests = SkillsField()  # Use Guest
     partner_one_first_name = models.CharField(max_length=100)
     partner_one_last_name = models.CharField(max_length=100)
     partner_one_gender = models.CharField(max_length=50, choices=(("male", "female"),))
     partner_two_first_name = models.CharField(max_length=100)
     partner_two_last_name = models.CharField(max_length=100)
-    partner_two_gender = models.CharField(max_length=50, choices=(("male", "female"),))
+    partner_two_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
 
     wedding_date = models.DateField(verbose_name=_('wedding date'), blank=True )
     reception_location = models.CharField(max_length=5000, blank=True)
     message = models.CharField(max_length=1000)
     free_apps = models.IntegerField(default=5)
+
+
+class Guest(models.Model):
+    user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE)
+    email = models.EmailField(_('email address'), max_length=255, unique=True)
+    friend_of = models.CharField(max_length=50, choices=(("groom", "bride"),))
+
+
+class Services(models.Model):
+    type = models.CharField(max_length=50, choices=(("1", "Wedding"), (2, "Baptism"), (3, "Event"),))
+
+
+class Invitation(models.Model):
+    user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE)
+    type = models.ForeignKey('Services', verbose_name=_('Invitation Type'), on_delete=models.CASCADE)
+    url = models.URLField(max_length=200, blank=True)
 
 
 class Question(models.Model):
