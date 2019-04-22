@@ -6,8 +6,9 @@ from .models import User
 
 # Register your models here.
 
-@register(User)
+# @register(User)
 class AuthorAdmin(admin.ModelAdmin):
     readonly_fields = ['id', 'username']
 
-# admin.site.register(User, AuthorAdmin)
+
+admin.site.register(User, AuthorAdmin)

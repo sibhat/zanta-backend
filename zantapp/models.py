@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin, AbstractUser
+from django.contrib.auth.models import PermissionsMixin, BaseUserManager, AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.http import int_to_base36
@@ -13,6 +13,37 @@ ID_LENGTH = 10
 def id_gen() -> str:
     """Generates random string whose length is `ID_LENGTH`."""
     return int_to_base36(uuid.uuid4().int)[:ID_LENGTH]
+
+
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def _create_user(self, email, password, **extra_fields):
+        """
+        Creates and saves a user with the given email, and password.
+        """
+        if not email:
+            raise ValueError('Users must have an email address')
+        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(email, password, **extra_fields)
+
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(email, password, **extra_fields)
 
 
 class BaseModel(models.Model):
@@ -29,11 +60,12 @@ class BaseModel(models.Model):
 
 
 class User(AbstractUser, BaseModel):
-    username = models.CharField(_('username'), max_length=255, unique=True)  # Singular Field Uniqueness
+    username = models.CharField(_('username'), max_length=255)  # Singular Field Uniqueness
     email = models.EmailField(_('email address'), max_length=255, unique=True)  # Singular Field Uniqueness
     is_photographer = models.BooleanField(_('photographer'), default=False)
     is_client = models.BooleanField(_('client'), default=False)
 
+    # objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
@@ -73,16 +105,15 @@ class SkillsField(ArrayField):
 
 
 class Client(Profile):
-    desired_title = models.CharField(_('desired title'), max_length=150, blank=True)
     guests = SkillsField()
     partner_one_first_name = models.CharField(max_length=100)
     partner_one_last_name = models.CharField(max_length=100)
-    partner_one_gender = models.CharField(choices=("male", "female"))
+    partner_one_gender = models.CharField(max_length=50, choices=(("male", "female"),))
     partner_two_first_name = models.CharField(max_length=100)
     partner_two_last_name = models.CharField(max_length=100)
-    partner_two_gender = models.CharField(choices=("male", "female"))
+    partner_two_gender = models.CharField(max_length=50, choices=(("male", "female"),))
 
-    wedding_date = models.DateField(verbose_name=_('wedding date'),blank=True)
+    wedding_date = models.DateField(verbose_name=_('wedding date'), blank=True )
     reception_location = models.CharField(max_length=5000, blank=True)
     message = models.CharField(max_length=1000)
     free_apps = models.IntegerField(default=5)
@@ -90,7 +121,7 @@ class Client(Profile):
 
 class Question(models.Model):
     question = models.CharField(_("Question"), max_length=200, blank=True)
-    user = models.ForeignKey(verbose_name=_('user'), to='Client', related_name='%(class)s', on_delete=models.CASCADE)
+    user = models.ForeignKey('Client', on_delete=models.CASCADE)
 
 
 class Answer(models.Model):
