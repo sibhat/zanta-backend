@@ -135,7 +135,7 @@ LOGIN_URL = '/admin/login/'
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "PST"
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
