@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import Group
 
-from .models import User, Profile, Client, Guest, Services, Invitation
+from .models import User, Profile, Client, Guest, Services, Invitation, Question
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -45,4 +45,10 @@ class InvitationSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Invitation
         fields = ("url", "type", "user")
+
+
+class QuestionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Question
+        fields = ("url", "question")
 
