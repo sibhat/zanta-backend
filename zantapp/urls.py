@@ -2,9 +2,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from zantapp.views import UserViewSet, GroupViewSet
+from zantapp.views import *
 
 router = DefaultRouter(trailing_slash=True)
+router.register('client', ClientViewSet)
 router.register("users", UserViewSet)
 router.register('groups', GroupViewSet)
 
