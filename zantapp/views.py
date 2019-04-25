@@ -7,8 +7,8 @@ from django.contrib.auth.models import Group
 
 from rest_framework import viewsets
 # Create your views here.
-from zantapp.models import User
-from zantapp.serializers import UserSerializer, GroupSerializer
+from zantapp.models import *
+from zantapp.serializers import *
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -22,3 +22,9 @@ class GroupViewSet(viewsets.ModelViewSet):
     """
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+
+class ClientViewSet(viewsets.ModelViewSet):
+    queryset = Client.objects.all()
+    serializer_class = ClientSerializer
+
