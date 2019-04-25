@@ -60,8 +60,8 @@ class BaseModel(models.Model):
 
 
 class User(AbstractUser, BaseModel):
-    username = models.CharField(_('Username'), max_length=255, blank=True)  # Singular Field Unique
-    email = models.EmailField(_('email address'), max_length=255, blank=True, unique=True)  # Singular Field Uniqueness
+    username = models.CharField(_('Username'), max_length=255, blank=True, default='')  # Singular Field Unique
+    email = models.EmailField(_('email address'), max_length=255, blank=False, unique=True)  # Singular Field Uniqueness
     is_photographer = models.BooleanField(_('photographer'), default=False)
     is_client = models.BooleanField(_('client'), default=True)
 
