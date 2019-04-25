@@ -1,11 +1,14 @@
 from django.shortcuts import render
+from rest_framework.decorators import  permission_classes
 
 from oauth2_provider.models import AccessToken
 from oauth2_provider.views import TokenView
+from django.contrib.auth.models import Group
+
 from rest_framework import viewsets
 # Create your views here.
 from zantapp.models import User
-from zantapp.serializers import UserSerializer
+from zantapp.serializers import UserSerializer, GroupSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -13,20 +16,9 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
-class ProfileTokenView(TokenView):
-    """Returns OAuth2 access and refresh tokens in addition to user profile under 'profile' key"""
-
-    def post(self, request, *args, **kwargs):
-        # Get original response from OAuth2 library
-        response = super().post(request=request, *args, **kwargs)
-        # Return it in case any failures
-        if response.status_code != 200:
-            return response
-
-        # Decode json body to add profile based on user type
-        data = json.loads(response.content)
-        user = AccessToken.objects.get(token=data['access_token']).user
-
-        # Encode json and return the modified response
-        response.content = json.dumps(data)
-        return response
+class GroupViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
