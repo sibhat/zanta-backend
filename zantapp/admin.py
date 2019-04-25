@@ -3,12 +3,16 @@ from .models import *
 
 
 # @register(User)
-class AuthorAdmin(admin.ModelAdmin):
-    readonly_fields = ['id', 'email']
+class UserAdmin(admin.ModelAdmin):
+    def __init__(self, model, admin_site):
+        self.list_display = [field.name for field in model._meta.fields if field.name != "id"]
+        super(UserAdmin, self).__init__(model, admin_site)
 
 
 class ClientAdmin(admin.ModelAdmin):
-    readonly_fields = ['partner_one_first_name', 'partner_one_last_name']
+    def __init__(self, model, admin_site):
+        self.list_display = [field.name for field in model._meta.fields if field.name != "id"]
+        super(ClientAdmin, self).__init__(model, admin_site)
 
 
 class ServicesAdmin(admin.ModelAdmin):
@@ -27,7 +31,7 @@ class AnswerAdmin(admin.ModelAdmin):
     readonly_fields = ['id', 'question_id', 'answer']
 
 
-admin.site.register(User, AuthorAdmin)
+admin.site.register(User, UserAdmin)
 admin.site.register(Client, ClientAdmin)
 admin.site.register(Services, ServicesAdmin)
 admin.site.register(Invitation, InvitationAdmin)
