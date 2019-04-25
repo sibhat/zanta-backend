@@ -2,8 +2,15 @@ from django.shortcuts import render
 
 from oauth2_provider.models import AccessToken
 from oauth2_provider.views import TokenView
-
+from rest_framework import viewsets
 # Create your views here.
+from zantapp.models import User
+from zantapp.serializers import UserSerializer
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class ProfileTokenView(TokenView):
