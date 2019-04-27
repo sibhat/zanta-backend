@@ -112,7 +112,7 @@ class Client(Profile):
     # guests = SkillsField()  # Use Guest
     partner_one_first_name = models.CharField(max_length=100)
     partner_one_last_name = models.CharField(max_length=100)
-    partner_one_gender = models.CharField(max_length=50, choices=(("male", "female"),))
+    partner_one_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
     partner_two_first_name = models.CharField(max_length=100)
     partner_two_last_name = models.CharField(max_length=100)
     partner_two_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
