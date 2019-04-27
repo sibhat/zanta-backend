@@ -79,6 +79,8 @@ class User(AbstractUser, BaseModel):
 
 
 class Profile(BaseModel):
+    """Profile """
+
     user = models.OneToOneField(verbose_name=_('user'), to='User', related_name='%(class)s', on_delete=models.CASCADE)
     photo = models.URLField(max_length=500, blank=True)
     Story = models.CharField(_('Story'), max_length=500, blank=True)
