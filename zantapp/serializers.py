@@ -5,6 +5,9 @@ from .models import User, Profile, Client, Guest, Services, Invitation, Question
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
+    """"
+    UserSerializer
+    """
     class Meta:
         model = User
         fields = ['email', 'password', 'first_name', 'last_name', 'is_staff', 'is_photographer', 'is_client']
