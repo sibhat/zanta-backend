@@ -57,24 +57,32 @@ class ClientSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class GuestSerializer(serializers.HyperlinkedModelSerializer):
+    """"GuestSerializer comment started"""
+
     class Meta:
         model = Guest
         fields = ("url","email", "friend_of")
 
 
 class ServicesSerializer(serializers.HyperlinkedModelSerializer):
+    """"ServicesSerializer comment started"""
+
     class Meta:
         model = Services
         fields = ("url", "type")
 
 
 class InvitationSerializer(serializers.HyperlinkedModelSerializer):
+    """"InvitationSerializer comment started"""
+
     class Meta:
         model = Invitation
         fields = ("url", "type", "user")
 
 
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):
+    """"QuestionSerializer comment started"""
+
     class Meta:
         model = Question
         fields = ("url", "question")
