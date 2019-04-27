@@ -12,6 +12,7 @@ python-decouple = "*"
 gunicorn = "*"
 django-oauth-toolkit = "*"
 django-cors-middleware = "*"
+newrelic = "*"
 
 [dev-packages]
 pylint = "*"
