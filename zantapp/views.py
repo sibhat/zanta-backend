@@ -28,6 +28,8 @@ class GroupViewSet(viewsets.ModelViewSet):
 
 
 class ClientViewSet(viewsets.ModelViewSet):
+    """"ClientViewSet comment started"""
+
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
 
