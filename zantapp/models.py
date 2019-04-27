@@ -108,6 +108,7 @@ class SkillsField(ArrayField):
 
 
 class Client(Profile):
+    """Client comment started """
     # guests = SkillsField()  # Use Guest
     partner_one_first_name = models.CharField(max_length=100)
     partner_one_last_name = models.CharField(max_length=100)
