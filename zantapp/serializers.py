@@ -1,7 +1,67 @@
+from django.db import transaction
 from rest_framework import serializers
 from django.contrib.auth.models import Group
+from rest_framework.validators import UniqueValidator
 
-from .models import User, Profile, Client, Guest, Services, Invitation, Question
+from .models import User, Profile, Client, Guest, Services, Invitation, Question, Photographer
+
+
+class SignupClientSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(source='user.email', max_length=255,
+                                   validators=[UniqueValidator(queryset=User.objects.all())])
+    password = serializers.CharField(source='user.password', max_length=128, write_only=True)
+    old_password = serializers.CharField(max_length=128, write_only=True, required=False)
+    first_name = serializers.CharField(source='user.first_name', allow_blank=True, max_length=30, required=False)
+    last_name = serializers.CharField(source='user.last_name', allow_blank=True, max_length=150, required=False)
+    is_photographer = serializers.ReadOnlyField(source='user.is_photographer')
+    is_client = serializers.ReadOnlyField(source='user.is_client')
+    wedding_date = serializers.DateTimeField(source='client.wedding_date', required=False)
+
+    class Meta:
+        model = Client
+        fields = ['email', "first_name", "password", "last_name", "old_password", "is_photographer",
+                  "is_client", "wedding_date"]
+        # validators = [UniqueValidator(queryset=Photographer.objects.all())]
+
+    @transaction.atomic  # Ensure creation of both models is done
+    # in a single transaction not to create inconsistencies
+    def create(self, validated_data):
+        """
+        Creates new User and Client profile.
+        """
+        # Create auth user model first
+        validated_user_data = validated_data.pop('user', {})
+        user = User.objects.create_user(is_client=True, **validated_user_data)
+        # Create Client profile
+        return Client.objects.create(user=user, **validated_data)
+
+
+class SignupPhotographerSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', max_length=255)
+    email = serializers.EmailField(source='user.email', max_length=255)
+    password = serializers.CharField(source='user.password', max_length=128, write_only=True)
+    old_password = serializers.CharField(max_length=128, write_only=True, required=False)
+    first_name = serializers.CharField(source='user.first_name', allow_blank=True, max_length=30, required=False)
+    last_name = serializers.CharField(source='user.last_name', allow_blank=True, max_length=150, required=False)
+    is_photographer = serializers.ReadOnlyField(source='user.is_customer')
+    is_client = serializers.ReadOnlyField(source='user.is_admin')
+
+    class Meta:
+        model = Photographer
+        fields = ['email', 'username',  "first_name", "password", "last_name", "old_password", "is_photographer",
+                  "is_client"]
+
+    @transaction.atomic  # Ensure creation of both models is done
+    # in a single transaction not to create inconsistencies
+    def create(self, validated_data):
+        """
+        Creates new User and Photographer profile.
+        """
+        # Create auth user model first
+        validated_user_data = validated_data.pop('user', {})
+        user = User.objects.create_user(is_photographer=True, **validated_user_data)
+        # Create Client profile
+        return Photographer.objects.create(user=user, **validated_data)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
