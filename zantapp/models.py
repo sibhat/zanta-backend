@@ -60,7 +60,7 @@ class BaseModel(models.Model):
 
 
 class User(AbstractUser, BaseModel):
-    username = models.CharField(_('Username'), max_length=255, blank=True, default='')  # Singular Field Unique
+    username = None
     email = models.EmailField(_('email address'), max_length=255, blank=False, unique=True)  # Singular Field Uniqueness
     is_photographer = models.BooleanField(_('photographer'), default=False)
     is_client = models.BooleanField(_('client'), default=True)
@@ -113,11 +113,12 @@ class Client(Profile):
     partner_one_first_name = models.CharField(max_length=100)
     partner_one_last_name = models.CharField(max_length=100)
     partner_one_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
+
     partner_two_first_name = models.CharField(max_length=100)
     partner_two_last_name = models.CharField(max_length=100)
     partner_two_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
 
-    wedding_date = models.DateField(verbose_name=_('wedding date'), blank=True )
+    wedding_date = models.DateField(verbose_name=_('wedding date'), blank=True, auto_now_add=True, db_index=True)
     reception_location = models.CharField(max_length=5000, blank=True)
     message = models.CharField(max_length=1000)
     free_apps = models.IntegerField(default=5)
