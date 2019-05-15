@@ -97,7 +97,7 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     #     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
+        'rest_framework.permissions.IsAuthenticated'
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
@@ -135,7 +135,6 @@ LOGIN_URL = '/admin/login/'
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
 TIME_ZONE = 'America/Los_Angeles'
 
 USE_I18N = True
@@ -153,3 +152,4 @@ STATIC_URL = "/static/"
 
 django_heroku.settings(locals())
 # del DATABASES["default"]["OPTIONS"]["sslmode"]
+
