@@ -1,12 +1,16 @@
 from django.db import transaction
 from rest_framework import serializers
-from django.contrib.auth.models import Group
 from rest_framework.validators import UniqueValidator
 
-from .models import User, Profile, Client, Guest, Services, Invitation, Question, Photographer
+from .models import User, Client, Guest, Services, Invitation, Question, Photographer
 
 
-class SignupClientSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.Serializer):
+    """
+    Serializer to be subclassed by Client and Photographer serializers.
+    It allows creating and updating profiles and their related users.
+    """
+
     email = serializers.EmailField(source='user.email', max_length=255,
                                    validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(source='user.password', max_length=128, write_only=True)
@@ -18,10 +22,14 @@ class SignupClientSerializer(serializers.ModelSerializer):
     wedding_date = serializers.DateTimeField(source='client.wedding_date', required=False)
 
     class Meta:
-        model = Client
         fields = ['email', "first_name", "password", "last_name", "old_password", "is_photographer",
                   "is_client", "wedding_date"]
-        # validators = [UniqueValidator(queryset=Photographer.objects.all())]
+
+
+class SignupClientSerializer(ProfileSerializer, serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = [*ProfileSerializer.Meta.fields]
 
     @transaction.atomic  # Ensure creation of both models is done
     # in a single transaction not to create inconsistencies
@@ -33,23 +41,15 @@ class SignupClientSerializer(serializers.ModelSerializer):
         validated_user_data = validated_data.pop('user', {})
         user = User.objects.create_user(is_client=True, **validated_user_data)
         # Create Client profile
-        return Client.objects.create(user=user, **validated_data)
+        return Client.objects.create(user=user, partner_one_first_name=user.first_name,
+                                     partner_one_last_name=user.last_name, **validated_data)
 
 
-class SignupPhotographerSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', max_length=255)
-    email = serializers.EmailField(source='user.email', max_length=255)
-    password = serializers.CharField(source='user.password', max_length=128, write_only=True)
-    old_password = serializers.CharField(max_length=128, write_only=True, required=False)
-    first_name = serializers.CharField(source='user.first_name', allow_blank=True, max_length=30, required=False)
-    last_name = serializers.CharField(source='user.last_name', allow_blank=True, max_length=150, required=False)
-    is_photographer = serializers.ReadOnlyField(source='user.is_customer')
-    is_client = serializers.ReadOnlyField(source='user.is_admin')
+class SignupPhotographerSerializer(ProfileSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Photographer
-        fields = ['email', 'username',  "first_name", "password", "last_name", "old_password", "is_photographer",
-                  "is_client"]
+        fields = [*ProfileSerializer.Meta.fields]
 
     @transaction.atomic  # Ensure creation of both models is done
     # in a single transaction not to create inconsistencies
@@ -61,7 +61,8 @@ class SignupPhotographerSerializer(serializers.ModelSerializer):
         validated_user_data = validated_data.pop('user', {})
         user = User.objects.create_user(is_photographer=True, **validated_user_data)
         # Create Client profile
-        return Photographer.objects.create(user=user, **validated_data)
+        return Photographer.objects.create(user=user,partner_one_first_name=user.first_name,
+                                           partner_one_last_name=user.last_name, **validated_data)
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -88,32 +89,12 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         return super().update(instance, validated_data)
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Group
-        fields = ('url', 'name')
-
-
-class ProfileSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ("url", "photo", "headline", "summary")
-
-
-class ClientSerializer(serializers.HyperlinkedModelSerializer):
+class ClientSerializer(ProfileSerializer, serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Client
-        fields = ("url", "partner_one_first_name", "partner_one_last_name", "wedding_date", "reception_location",
-                  "partner_two_first_name", "partner_two_last_name",
-                  "message", "free_apps", "partner_one_gender", "partner_two_gender")
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-    def create(self, validated_data):
-        """Creates new user object using Client."""
-        print(validated_data)
-        return Client.objects.create_user(**validated_data)
+        fields = ["url", "id", "partner_one_first_name", "partner_one_last_name", "wedding_date", "reception_location",
+                  "partner_two_first_name", "partner_two_last_name", *ProfileSerializer.Meta.fields,
+                  "message", "free_apps", "partner_one_gender", "partner_two_gender"]
 
 
 class GuestSerializer(serializers.HyperlinkedModelSerializer):
