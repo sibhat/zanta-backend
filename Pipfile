@@ -13,6 +13,7 @@ gunicorn = "*"
 django-oauth-toolkit = "*"
 django-cors-middleware = "*"
 newrelic = "*"
+drf-yasg = "*"
 
 [dev-packages]
 pylint = "*"
