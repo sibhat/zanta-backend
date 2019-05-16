@@ -42,6 +42,7 @@ ALLOWED_HOSTS = config(
 INSTALLED_APPS = [
     "zantapp",
     "rest_framework",
+    'drf_yasg',
     "django.contrib.admin",
     "django.contrib.auth",
     "oauth2_provider",
