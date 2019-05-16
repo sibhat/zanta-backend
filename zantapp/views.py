@@ -1,66 +1,76 @@
-# from django.shortcuts import render
-# from rest_framework.decorators import  permission_classes
+from datetime import timedelta
 
-# from oauth2_provider.models import AccessToken
-# from oauth2_provider.views import TokenView
-# from django.contrib.auth.models import Group
-# from django.db import DatabaseError, Error
-import json
-from django.utils.decorators import method_decorator
+from django.utils import timezone
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from oauth2_provider.models import Application, AccessToken, RefreshToken
+from oauthlib import common
 from rest_framework.response import Response
-from rest_framework import viewsets, status
-# Create your views here.
+from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth import login, authenticate
-from rest_framework import status, permissions
+from rest_framework import status
 from oauth2_provider.settings import oauth2_settings
-from oauth2_provider.views.mixins import OAuthLibMixin
-from rest_framework.views import APIView
-
 from zantapp.serializers import *
 
 
-class signup_client(OAuthLibMixin, APIView):
-    permission_classes = (permissions.AllowAny,)
+@swagger_auto_schema(methods=['get'],
+                     responses={200: openapi.Response('Client or Photographer profile', ClientSerializer)})
+@api_view(http_method_names=['GET'])
+def me(request):
+    """Returns representation of the authenticated user profile (Client or Photographer) making the request."""
 
-    server_class = oauth2_settings.OAUTH2_SERVER_CLASS
-    validator_class = oauth2_settings.OAUTH2_VALIDATOR_CLASS
-    oauthlib_backend_class = oauth2_settings.OAUTH2_BACKEND_CLASS
+    if request.user.is_client:
+        serializer = ClientSerializer(instance=request.user.client, context={'request': request})
+    else:
+        pass
+        # serializer = PhotographerSerializer(instance=request.user.photographer)
 
-    @transaction.atomic
-    def post(self, request):
+    return Response(data=serializer.data)
 
-        serializer = SignupClientSerializer(data=request.data, context={'request': request})
-        serializer.is_valid()
-        # print("serializer error: ", serializer.errors)
-        if serializer.errors:
-            print("error:", serializer.errors)
-            return Response(data=serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-        else:
-            serializer.save()
-            url, headers, body, token_status = self.create_token_response(request)
-            if token_status != 200:
-                # raise Exception(json.loads(body).get("error_description", ""))
-                return Response(json.loads(body), status=token_status)
 
-            return Response(json.loads(body), status=token_status)
+@swagger_auto_schema(methods=['post'], request_body=ClientSerializer)
+@api_view(http_method_names=['POST'])
+@permission_classes([])
+@transaction.atomic
+def signup_client(request):
+
+    serializer = SignupClientSerializer(data=request.data, context={'request': request})
+    serializer.is_valid()
+    # print("serializer error: ", serializer.errors)
+    if serializer.errors:
+        return Response(data=serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+    else:
+        serializer.save()
+        application = Application.objects.get(client_id=serializer.initial_data["client_id"])
+        expires = timezone.now() + timedelta(seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS)
+        activated_user = User.objects.get(email=serializer.data["email"])
+        access_token = AccessToken(
+            user=activated_user,
+            scope='',
+            expires=expires,
+            token=common.generate_token(),
+            application=application
+        )
+        access_token.save()
+        refresh_token = RefreshToken(
+            user=activated_user,
+            token=common.generate_token(),
+            application=application,
+            access_token=access_token
+        )
+        refresh_token.save()
+
+        return Response({"expires": expires, "access_token": access_token.token,
+                         "refresh_token": refresh_token.token}, status=200)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited. to be deleted!
+    API endpoint that allows User to be viewed or edited. to be deleted!
     """
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
-class GroupViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows groups to be viewed or edited. to be deleted!
-    """
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
 
 
 class ClientViewSet(viewsets.ModelViewSet):
@@ -69,3 +79,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     queryset = Client.objects.all()
     serializer_class = ClientSerializer
 
+
+class InvitationViewSet(viewsets.ModelViewSet):
+    queryset = Invitation.objects.all()
+    serializer_class = InvitationSerializer
