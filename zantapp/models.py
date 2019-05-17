@@ -3,6 +3,7 @@ import uuid
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, BaseUserManager, AbstractUser
 from django.contrib.postgres.fields import ArrayField
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.http import int_to_base36
 from django.utils.translation import gettext_lazy as _
@@ -118,26 +119,33 @@ class Client(Profile):
     partner_two_last_name = models.CharField(max_length=100)
     partner_two_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
 
-    wedding_date = models.DateField(verbose_name=_('wedding date'), blank=True, auto_now_add=True, db_index=True)
-    reception_location = models.CharField(max_length=5000, blank=True)
-    message = models.CharField(max_length=1000)
-    free_apps = models.IntegerField(default=5)
+    free_apps = models.IntegerField(default=5, validators=[
+            MaxValueValidator(10),
+            MinValueValidator(0)
+        ])
+    service = models.ManyToManyField("Services", blank=True)
 
 
 class Guest(models.Model):
     user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE)
     email = models.EmailField(_('email address'), max_length=255, unique=True)
-    friend_of = models.CharField(max_length=50, choices=(("groom", "bride"),))
+    friend_of = models.CharField(max_length=50, choices=(("one", "two"),))
+    invitation = models.ForeignKey('Invitation', verbose_name=_('Invitation id'), on_delete=models.CASCADE, blank=False)
 
 
 class Services(models.Model):
-    type = models.CharField(max_length=50, choices=(("1", "Wedding"), (2, "Baptism"), (3, "Event"),))
+    type = models.CharField(max_length=100, unique=True, default="Wedding")
+    user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE)
 
 
 class Invitation(models.Model):
-    user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE)
-    type = models.ForeignKey('Services', verbose_name=_('Invitation Type'), on_delete=models.CASCADE)
-    url = models.URLField(max_length=200, blank=True)
+    user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE, blank=False)
+    type = models.ForeignKey('Services', verbose_name=_('Service Type'), on_delete=models.CASCADE, blank=False)
+    url = models.CharField(max_length=200, blank=True)
+    date = models.DateField(verbose_name=_('date'), blank=True, auto_now=True, db_index=True)
+    location = models.CharField(max_length=5000, blank=True)
+    headline = models.CharField(max_length=5000, blank=True)
+    description = models.CharField(max_length=5000, blank=True)
 
 
 class Question(models.Model):
