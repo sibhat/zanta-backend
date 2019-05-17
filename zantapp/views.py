@@ -83,3 +83,17 @@ class ClientViewSet(viewsets.ModelViewSet):
 class InvitationViewSet(viewsets.ModelViewSet):
     queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
+
+
+class ServicesViewSet(viewsets.ModelViewSet):
+    queryset = Services.objects.all()
+    serializer_class = ServicesSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = ServicesSerializer(data=request.data)
+        serializer.is_valid()
+        if serializer.errors:
+            return Response(serializer.errors)
+        else:
+            serializer.save(user=request)
+            return Response(data=serializer.data)
