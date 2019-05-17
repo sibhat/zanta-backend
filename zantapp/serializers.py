@@ -92,9 +92,9 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class ClientSerializer(ProfileSerializer, serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Client
-        fields = ["url", "id", "partner_one_first_name", "partner_one_last_name", "wedding_date", "reception_location",
+        fields = ["url", "id", "partner_one_first_name", "partner_one_last_name",
                   "partner_two_first_name", "partner_two_last_name", *ProfileSerializer.Meta.fields,
-                  "message", "free_apps", "partner_one_gender", "partner_two_gender"]
+                  "free_apps", "partner_one_gender", "partner_two_gender"]
 
 
 class GuestSerializer(serializers.HyperlinkedModelSerializer):
@@ -102,7 +102,7 @@ class GuestSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Guest
-        fields = ("url","email", "friend_of")
+        fields = "__all__"
 
 
 class ServicesSerializer(serializers.HyperlinkedModelSerializer):
@@ -110,7 +110,11 @@ class ServicesSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Services
-        fields = ("url", "type")
+        fields = ["id","type"]
+
+    def create(self, validated_data, *args, **kwargs):
+        validated_user_data = validated_data.pop('user', {})
+        return Services.objects.create(user=validated_user_data.user.client, **validated_data)
 
 
 class InvitationSerializer(serializers.HyperlinkedModelSerializer):
@@ -118,7 +122,7 @@ class InvitationSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Invitation
-        fields = ("url", "type", "user")
+        fields = "__all__"
 
 
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):
@@ -126,5 +130,5 @@ class QuestionSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Question
-        fields = ("url", "question")
+        fields = "__all__"
 
