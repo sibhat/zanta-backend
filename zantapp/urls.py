@@ -9,6 +9,7 @@ router = DefaultRouter(trailing_slash=True)
 router.register('client', ClientViewSet)
 router.register("users", UserViewSet)
 router.register("invitation", InvitationViewSet)
+router.register("service", ServicesViewSet)
 
 
 urlpatterns = [
