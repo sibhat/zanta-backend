@@ -4,12 +4,12 @@ from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from oauth2_provider.models import Application, AccessToken, RefreshToken
+from oauth2_provider.settings import oauth2_settings
 from oauthlib import common
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status
-from oauth2_provider.settings import oauth2_settings
 from zantapp.serializers import *
 
 
@@ -36,7 +36,8 @@ def signup_client(request):
 
     serializer = SignupClientSerializer(data=request.data, context={'request': request})
     serializer.is_valid()
-    # print("serializer error: ", serializer.errors)
+    # print("serializer error: ", oauth2_settings)
+
     if serializer.errors:
         return Response(data=serializer.errors,
                         status=status.HTTP_400_BAD_REQUEST)
@@ -91,6 +92,20 @@ class ServicesViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = ServicesSerializer(data=request.data)
+        serializer.is_valid()
+        if serializer.errors:
+            return Response(serializer.errors)
+        else:
+            serializer.save(user=request)
+            return Response(data=serializer.data)
+
+
+class GuestViewSet(viewsets.ModelViewSet):
+    queryset = Guest.objects.all()
+    serializer_class = GuestSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = GuestSerializer(data=request.data)
         serializer.is_valid()
         if serializer.errors:
             return Response(serializer.errors)

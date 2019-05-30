@@ -10,10 +10,10 @@ dj-database-url = "*"
 django-heroku = "*"
 python-decouple = "*"
 gunicorn = "*"
-django-oauth-toolkit = "*"
 django-cors-middleware = "*"
 newrelic = "*"
 drf-yasg = "*"
+django-oauth-toolkit = "*"
 
 [dev-packages]
 pylint = "*"

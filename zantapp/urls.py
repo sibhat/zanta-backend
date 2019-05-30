@@ -10,6 +10,7 @@ router.register('client', ClientViewSet)
 router.register("users", UserViewSet)
 router.register("invitation", InvitationViewSet)
 router.register("service", ServicesViewSet)
+router.register("guest", GuestViewSet)
 
 
 urlpatterns = [

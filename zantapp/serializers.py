@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 from .models import User, Client, Guest, Services, Invitation, Question, Photographer
 
@@ -97,12 +97,30 @@ class ClientSerializer(ProfileSerializer, serializers.HyperlinkedModelSerializer
                   "free_apps", "partner_one_gender", "partner_two_gender"]
 
 
-class GuestSerializer(serializers.HyperlinkedModelSerializer):
+class GuestSerializer(serializers.ModelSerializer):
     """"GuestSerializer comment started"""
 
     class Meta:
+        depth = 2
         model = Guest
         fields = "__all__"
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Guest.objects.all(),
+                fields=('user', 'email', "invitation")
+            )
+        ]
+
+    @transaction.atomic  # Ensure creation of both models is done
+    # in a single transaction not to create inconsistencies
+    def create(self, validated_data):
+        """
+        Creates new User and Photographer profile.
+        """
+        # Create auth user model first
+        validated_user_data = validated_data.pop('user', {})        # Create Client profile
+
+        return Guest.objects.create(user=validated_user_data.user.client, **validated_data)
 
 
 class ServicesSerializer(serializers.HyperlinkedModelSerializer):
@@ -117,12 +135,23 @@ class ServicesSerializer(serializers.HyperlinkedModelSerializer):
         return Services.objects.create(user=validated_user_data.user.client, **validated_data)
 
 
-class InvitationSerializer(serializers.HyperlinkedModelSerializer):
+class InvitationSerializer(serializers.ModelSerializer):
     """"InvitationSerializer comment started"""
 
     class Meta:
         model = Invitation
         fields = "__all__"
+
+    @transaction.atomic  # Ensure creation of both models is done
+    # in a single transaction not to create inconsistencies
+    def create(self, validated_data):
+        """
+        Creates new User and Photographer profile.
+        """
+        # Create auth user model first
+        validated_user_data = validated_data.pop('user', {})        # Create Client profile
+
+        return Invitation.objects.create(user=validated_user_data, **validated_data)
 
 
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):

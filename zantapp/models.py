@@ -111,6 +111,7 @@ class SkillsField(ArrayField):
 class Client(Profile):
     """Client comment started """
     # guests = SkillsField()  # Use Guest
+
     partner_one_first_name = models.CharField(max_length=100)
     partner_one_last_name = models.CharField(max_length=100)
     partner_one_gender = models.CharField(max_length=50, choices=(("m", "male"), ("f", "female"),))
@@ -128,9 +129,14 @@ class Client(Profile):
 
 class Guest(models.Model):
     user = models.ForeignKey('Client', verbose_name=_('Client id'), on_delete=models.CASCADE)
-    email = models.EmailField(_('email address'), max_length=255, unique=True)
+    email = models.EmailField(_('email address'), max_length=255)
     friend_of = models.CharField(max_length=50, choices=(("one", "two"),))
     invitation = models.ForeignKey('Invitation', verbose_name=_('Invitation id'), on_delete=models.CASCADE, blank=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'email', "invitation"], name='Guest must be unique')
+        ]
 
 
 class Services(models.Model):
